@@ -6,6 +6,7 @@ import ColorGame from "../ColorGame";
 import Doable from "../Doable";
 
 import reactIconUrl from "../../assets/react-icon.svg";
+import { AuthProvider } from "../../contexts/authContext";
 
 const navigation = [
   {
@@ -21,13 +22,21 @@ const navigation = [
 function App() {
   const [page, setPage] = React.useState("/");
 
+  function colorPage() {
+    setPage("/color-game");
+  }
+
+  function doablePage() {
+    setPage("/doable");
+  }
+
   return (
     <div className={s.wrapper}>
       <header className={s.header}>
         <button
           className={s.logo}
           onClick={() => {
-            /* completar */
+            setPage("/");
           }}
         >
           <img src={reactIconUrl} /> React Evaluation
@@ -38,7 +47,7 @@ function App() {
               key={item.to}
               className={clsx(s["nav-item"], page === item.to && s.current)}
               onClick={() => {
-                /* completar */
+                setPage(item.to);
               }}
             >
               {item.name}
@@ -48,12 +57,20 @@ function App() {
       </header>
       <main className={s.main}>
         {/* Utiliza la variable 'page' para renderizar solo uno de los siguientes */}
-        <Home />
-        <ColorGame />
-        <Doable />
+        {page === "/" && (
+          <Home changeToColorPage={colorPage} changeToDoablePage={doablePage} />
+        )}
+        {page === "/color-game" && <ColorGame />}
+        {page === "/doable" && (
+          <AuthProvider>
+            <Doable />
+          </AuthProvider>
+        )}
       </main>
     </div>
   );
 }
+
+
 
 export default App;

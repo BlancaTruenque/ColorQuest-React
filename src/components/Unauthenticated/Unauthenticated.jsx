@@ -1,21 +1,26 @@
 import * as React from "react";
 import s from "./Unauthenticated.module.css";
+import { useAuth } from "../../contexts/authContext";
 
 function Unauthenticated() {
-  const login = () => {};
-  const signup = () => {};
+  const { login, signup } = useAuth();
 
   const [status, setStatus] = React.useState("idle");
   const [activeTab, setActiveTab] = React.useState("login");
   const [signUpErrors, setSignUpErrors] = React.useState(null);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+
+  const addEmail = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const addPassword = (e) => {
+    setPassword(e.target.value);
+  };
 
   function handleSubmit(event) {
     event.preventDefault();
-
-    // obtener datos del formulario
-    const email = "";
-    const password = "";
-
     setStatus("loading");
 
     if (activeTab === "login") {
@@ -61,6 +66,7 @@ function Unauthenticated() {
         <div>
           <label htmlFor="email">Email</label>
           <input
+            onChange={addEmail}
             id="email"
             type="email"
             name="email"
@@ -71,6 +77,7 @@ function Unauthenticated() {
         <div>
           <label htmlFor="password">Password</label>
           <input
+            onChange={addPassword}
             type="password"
             id="password"
             name="password"

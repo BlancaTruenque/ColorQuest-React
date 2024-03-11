@@ -1,27 +1,30 @@
 import s from "./Home.module.css";
 import reactIconUrl from "../../assets/react-icon-lg.svg";
+import Button from "../Button/Button";
 
-function Home() {
+function Home({ changeToColorPage, changeToDoablePage }) {
   return (
     <div className={s.wrapper}>
       <img src={reactIconUrl} />
       <h1 className={s.title}>React Evaluation</h1>
-      <p className={s.name}>Nombre Apellido</p>
+      <p className={s.name}>Blanca Truenque</p>
       <div className={s.buttons}>
-        <button
+        <Button
           onClick={() => {
-            /* completar */
+            changeToColorPage();
           }}
+          variant="outline"
         >
           Color Game
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
-            /* completar */
+            changeToDoablePage();
           }}
+          variant="outline"
         >
           Doable
-        </button>
+        </Button>
       </div>
     </div>
   );

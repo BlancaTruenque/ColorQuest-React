@@ -1,7 +1,15 @@
 import * as React from "react";
 import s from "./Authenticated.module.css";
+import Button from "../Button";
 import { BadgeAlert, Trash2 } from "lucide-react";
 import { filterTasks, sortTasks } from "./utils";
+import { useAuth } from "../../contexts/authContext";
+import {
+  createTask,
+  deleteTask,
+  editTask,
+  getTasks,
+} from "../../services/tasks";
 
 const exampleTasks = [
   {
@@ -31,32 +39,57 @@ const exampleTasks = [
 ];
 
 function Authenticated() {
-  const logout = () => {};
+  const { logout } = useAuth();
   const [status, setStatus] = React.useState("idle");
   const [formStatus, setFormStatus] = React.useState("idle");
-  const [tasks, setTasks] = React.useState(exampleTasks);
+  const [tasks, setTasks] = React.useState([]);
+  const [sortBy, setSortBy] = React.useState("due_date-asc");
+  const [onlyPending, setOnlyPending] = React.useState(false);
+  const [onlyImportant, setOnlyImportant] = React.useState(false);
+
+  React.useEffect(() => {
+    setStatus("loading");
+    getTasks().then((response) => {
+      setTasks(response);
+      setStatus("idle");
+    });
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
     const taskData = Object.fromEntries(formData.entries());
-
-    // crear task
+    setFormStatus("loading");
+    await createTask(taskData);
+    const response = await getTasks();
+    setTasks(response);
+    setFormStatus("idle");
   }
 
   async function handleEdit(id, updates) {
-    // editar task
+    setStatus("loading");
+    await editTask(id, updates);
+    const response = await getTasks();
+    setTasks(response);
+    setStatus("idle");
   }
 
   async function handleDelete(id) {
-    // eliminar task
+    setStatus("loading");
+    await deleteTask(id);
+    const response = await getTasks();
+    setTasks(response);
+    setStatus("idle");
   }
 
   const isLoading = status === "loading";
   const isCreating = formStatus === "loading";
 
-  const filteredTasks = filterTasks(tasks, {});
-  const sortedTasks = sortTasks(filteredTasks, "");
+  const filteredTasks = filterTasks(tasks, {
+    onlyPending: onlyPending,
+    onlyImportant: onlyImportant,
+  });
+  const sortedTasks = sortTasks(filteredTasks, sortBy);
 
   return (
     <>
@@ -77,16 +110,21 @@ function Authenticated() {
           aria-label="due_date"
           disabled={isCreating}
         />
-        <button disabled={isCreating}>
+        <Button disabled={isCreating} onChange={handleSubmit}>
           {isCreating ? "Adding..." : "Add task"}
-        </button>
+        </Button>
       </form>
 
       <div className={s["tasks-wrapper"]}>
         <aside className={s.aside}>
           <div className={s["input-group"]}>
             <label htmlFor="sort_by">Sort by</label>
-            <select id="sort_by">
+            <select
+              id="sort_by"
+              onChange={(event) => {
+                setSortBy(event.target.value);
+              }}
+            >
               <option value="due_date-asc">Due Date (old first)</option>
               <option value="due_date-desc">Due Date (new first)</option>
               <option value="alphabetical-asc">Alphabetical (a-z)</option>
@@ -96,21 +134,37 @@ function Authenticated() {
           <div className={s["input-group"]}>
             <label>Filter</label>
             <div className={s.checkbox}>
-              <input type="checkbox" id="pending" />
+              <input
+                type="checkbox"
+                id="pending"
+                checked={onlyPending}
+                onClick={() => {
+                  setOnlyPending(!onlyPending);
+                }}
+                readOnly
+              />
               <label htmlFor="pending">Only pending</label>
             </div>
             <div className={s.checkbox}>
-              <input type="checkbox" id="important" />
+              <input
+                type="checkbox"
+                id="important"
+                checked={onlyImportant}
+                onClick={() => {
+                  setOnlyImportant(!onlyImportant);
+                }}
+                readOnly
+              />
               <label htmlFor="important">Only important</label>
             </div>
           </div>
-          <button
+          <Button
             onClick={() => {
-              /* completar */
+              logout();
             }}
           >
             Logout
-          </button>
+          </Button>
         </aside>
         <div className={s["tasks-list"]}>
           {isLoading && <p>Loading...</p>}
@@ -123,7 +177,7 @@ function Authenticated() {
                     id={task.id}
                     checked={task.completed}
                     onChange={() => {
-                      /* completar */
+                      handleEdit(task.id, { completed: !task.completed });
                     }}
                   />
                   <div className={s["title-wrapper"]}>
@@ -136,20 +190,20 @@ function Authenticated() {
                   </div>
                 </div>
                 <div className={s.actions}>
-                  <button
+                  <Button
                     onClick={() => {
-                      /* completar */
+                      handleEdit(task.id, { important: !task.important });
                     }}
                   >
                     <BadgeAlert />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => {
-                      /* completar */
+                      handleDelete(task.id);
                     }}
                   >
                     <Trash2 />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
